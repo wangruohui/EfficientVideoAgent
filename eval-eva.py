@@ -232,11 +232,11 @@ async def single(
     model: str,
     dataset_cfg: Dict[str, str],
     tokenizer,
-    max_turns: int = 8,
-    timestamp_fmt: str = "mmss",
-    max_visual_tokens: int = 60000,
-    maxp: int = 720,
-    fallback: bool = True,
+    max_turns: int,
+    timestamp_fmt: str,
+    max_visual_tokens: int,
+    maxp: int,
+    fallback: bool,
 ) -> Dict[str, Any]:
     prompt = item["prompt"]
     video = os.path.join(dataset_cfg["video_root"], item["videos"][0])
@@ -481,6 +481,7 @@ async def process_single_item(
     dataset_cfg: Dict[str, str],
     tokenizer,
     semaphore: asyncio.Semaphore,
+    max_turns: int,
     max_visual_tokens: int,
     maxp: int,
     fallback: bool,
@@ -493,6 +494,8 @@ async def process_single_item(
                 model_name,
                 dataset_cfg,
                 tokenizer,
+                max_turns=max_turns,
+                timestamp_fmt="mmss",
                 max_visual_tokens=max_visual_tokens,
                 maxp=maxp,
                 fallback=fallback,
@@ -516,6 +519,7 @@ async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", required=True, choices=sorted(DATASET_CONFIG.keys()))
     parser.add_argument("--max-concurrent", type=int, default=20)
+    parser.add_argument("--max-turns", type=int, default=6, help="Maximum tool-augmented dialogue turns per sample")
     parser.add_argument("--new-cache", action="store_true", help="Recreate cache file")
     parser.add_argument(
         "--retry-error",
@@ -532,7 +536,7 @@ async def main():
         "-v",
         "--max-visual-tokens",
         type=int,
-        default=40000,
+        default=25000,
         help="Max visual token budget per single tool call before frame extraction",
     )
     parser.add_argument(
@@ -626,6 +630,7 @@ async def main():
                 cfg,
                 tokenizer,
                 semaphore,
+                args.max_turns,
                 args.max_visual_tokens,
                 args.maxp,
                 args.fallback,
