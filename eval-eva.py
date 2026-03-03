@@ -657,7 +657,7 @@ async def main():
 
     eval_total = len(items)
     eval_correct = 0
-    fail_not_answer_found = 0
+    fail_empty_answer = 0
     missing_result = 0
     round_sum = 0
     token_sum = 0
@@ -677,12 +677,12 @@ async def main():
         token_sum += int(rec.get("total_tokens", 0))
         stats_count += 1
 
-        if rec.get("stop_reason") != "answer_found":
-            fail_not_answer_found += 1
+        gt_s = str(item["reward_model"]["ground_truth"]).strip().upper()
+        ans_s = str(rec.get("answer", "")).strip().upper()
+        if ans_s == "":
+            fail_empty_answer += 1
             continue
 
-        gt_s = str(item.get("reward_model", {}).get("ground_truth", "")).strip()
-        ans_s = str(rec.get("answer", "")).strip()
         if gt_s == ans_s:
             eval_correct += 1
 
@@ -692,7 +692,7 @@ async def main():
         print(f"  accuracy: {eval_correct}/{eval_total} = {acc:.4%}")
     else:
         print("  accuracy: N/A (dataset is empty)")
-    print(f"  failed (stop_reason != answer_found): {fail_not_answer_found}")
+    print(f"  failed (empty answer): {fail_empty_answer}")
     print(f"  missing result in cache: {missing_result}")
     if stats_count > 0:
         print(f"  avg rounds: {round_sum / stats_count:.4f}")
