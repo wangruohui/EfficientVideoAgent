@@ -1,94 +1,67 @@
 #!/usr/bin/env python3
 import json
-import re
 import sys
 from collections import Counter
 
-pat = re.compile(r"<answer>([\w\s]+)</answer>")
-pat2 = re.compile(r"<\|im_start\|>assistant\n\s*([ABCDE])", re.DOTALL|re.MULTILINE|re.S)
+def _require_number(item, key: str, lineno: int):
+    if key not in item:
+        raise ValueError(f"line {lineno}: missing required field `{key}`")
+    value = item[key]
+    if value is None:
+        raise ValueError(f"line {lineno}: field `{key}` is None")
+    if not isinstance(value, (int, float)):
+        raise ValueError(f"line {lineno}: field `{key}` must be number, got {type(value).__name__}")
+    return value
 
-def id_to_duration(i:int):
-    if i < 900:
-        return "short"
-    elif i < 1800:
-        return "medium"
-    else:
-        return "long"
 
 def main(infile, print_=False):
-    # correct, total = 0, 0
-    correct = {"short": 0, "medium": 0, "long": 0}
-    total = {"short": 0, "medium": 0, "long": 0}
-    visual_token_counts = {"short": 0, "medium": 0, "long": 0}
-    token_counts = {"short": 0, "medium": 0, "long": 0}
-    num_rounds = 0
-    answer_not_found = 0
-    answer_format2 = 0
-    c = Counter()
+    eval_total = 0
+    eval_correct = 0
+    fail_empty_answer = 0
+    round_sum = 0.0
+    token_sum = 0.0
+    reason_counter = Counter()
 
     with open(infile, "r") as f:
-
-        for i, line in enumerate(f):
-            duration = id_to_duration(i)
-
+        for lineno, line in enumerate(f, start=1):
             item = json.loads(line)
-            total[duration] += 1
+            eval_total += 1
 
-            try:
-                output = item["output"]
-            except:
-                # print(i)
-                pass
-            c.update([item["stop_reason"]])
+            reason = item.get("stop_reason", "missing_stop_reason")
+            reason_counter[str(reason)] += 1
 
-            if "answer" in item:
-                answer = item["answer"].strip().upper()
-            else:
-                m = pat.search(output)
-                if not m:
-                    # print("Error: No answer found in output:", item)
-                    answer_not_found += 1
-                    continue
-                    # m = pat2.search(output)
-                    # if not m:
-                    #     print(output[-100:])
-                    #     continue
-                    # c['answer_found'] += 1
-                    # c[item['stop_reason']] -= 1
-                    # answer_format2 += 1
+            # Strict mode: these fields must exist and be numeric.
+            round_sum += _require_number(item, "num_rounds", lineno)
+            token_sum += _require_number(item, "total_tokens", lineno)
 
-                answer = m.group(1).strip().upper()
+            gt_s = str(item.get("gt", "")).strip().upper()
+            ans_s = str(item.get("answer", "")).strip().upper()
+            if ans_s == "":
+                fail_empty_answer += 1
+                continue
 
-            gt = item["gt"].strip().upper()
-            # print(f"line: {i}, GT: {gt}, Pred: {answer}")
+            if gt_s == ans_s:
+                eval_correct += 1
 
-            if answer == gt:
-                correct[duration] += 1
-            else:
-                pass
-                # print(f"line: {i}, GT: {gt}, Pred: {answer}, Output: {output}")
+    if eval_total == 0:
+        raise ValueError(f"{infile} is empty")
 
-            visual_token_counts[duration] += item.get("num_img_tokens", 0)
-            token_counts[duration] += item.get("total_tokens", 0)
-            num_rounds += item.get("num_round", item.get("num_rounds", 0))
-    print(answer_format2)
-    avg_accuracy = {k: correct[k] / total[k] if total[k] > 0 else 0 for k in correct}
-    total_accuracy = sum(correct.values()) / sum(total.values()) if sum(total.values()) > 0 else 0
-    total_avg_visual_token = sum(visual_token_counts.values()) / sum(total.values()) if sum(total.values()) > 0 else 0
-    total_avg_token = sum(token_counts.values()) / sum(total.values()) if sum(total.values()) > 0 else 0
-    avg_num_rounds = num_rounds / sum(total.values()) if sum(total.values()) > 0 else 0
+    total_accuracy = eval_correct / eval_total
+    avg_num_rounds = round_sum / eval_total
+    avg_total_tokens = token_sum / eval_total
     if print_:
-        print(f"Correct: {correct}, Total: {total}")
-        print(f"Average Accuracy: {avg_accuracy}")
-        print(f"Total Accuracy: {total_accuracy:.3%}")
-        print(f"Average Visual Token: {total_avg_visual_token:.0f}")
-        print(f"Average Token: {total_avg_token:.0f}")
-        print(f"Average Number of Rounds: {avg_num_rounds:.2f}")
-        print("Stop reason counts:", c)
-        print(f"Failed rate: {(sum(total.values()) - c['answer_found'])}/{sum(total.values())}")
-        print(f"Answer not found {answer_not_found}")
+        print(f"Evaluating {infile}...")
+        print("summary:")
+        print(f"  total entries: {eval_total}")
+        print(f"  accuracy: {eval_correct}/{eval_total} = {total_accuracy:.4%}")
+        print(f"  failed (empty answer): {fail_empty_answer}")
+        print(f"  avg rounds: {avg_num_rounds:.4f}")
+        print(f"  avg total_tokens: {avg_total_tokens:.4f}")
+        print("  stop_reason stats:")
+        for reason, cnt in reason_counter.most_common():
+            print(f"    {reason}: {cnt}")
 
-    return total_accuracy, sum(total.values())
+    return total_accuracy, eval_total
 
 
 if __name__ == "__main__":
