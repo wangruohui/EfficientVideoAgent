@@ -258,6 +258,8 @@ async def single(
 
     stop_reason = "max_turns_exceeded"
     answer: Optional[str] = None
+    num_rounds = 0
+    total_tokens = 0
 
     for _ in range(max_turns):
         try:
@@ -279,7 +281,13 @@ async def single(
                 "answer": "",
                 "stop_reason": stop_reason,
                 "error": f"OpenAI BadRequestError after retries: {str(e)}",
+                "num_rounds": num_rounds,
+                "total_tokens": total_tokens,
             }
+        num_rounds += 1
+
+        # Inference engine use cache across rounds, so recoding the last one is appropriate.
+        total_tokens = response.usage.total_tokens
 
         resp = response.choices[0].message.content
         messages.append({"role": "assistant", "content": resp})
@@ -335,14 +343,12 @@ async def single(
                 resize = min(resize, resize_cap_from_maxp)
                 current_estimated_tokens = estimated_tokens(nframes, resize)
 
+                # Second-stage fallback: iterative joint downscale.
                 if current_estimated_tokens > max_visual_tokens:
                     r = (max_visual_tokens / current_estimated_tokens) ** (1/3)
                     nframes = max(1, int(nframes * r))
                     resize = resize * r
 
-                # # Second-stage fallback: iterative joint downscale.
-                # nframes = max(1, int(nframes / 1.2))
-                # resize = resize / 1.2
                 current_estimated_tokens = estimated_tokens(nframes, resize)
                 print(f"turn {_}, reduce to {current_estimated_tokens=} at nframes={nframes}, resize={resize:.4f}")
 
@@ -390,7 +396,7 @@ async def single(
             {
                 "type": "text",
                 "text": (
-                    "\nIf more information is needed, call the frame selection tool again.\n"
+                    "\nIf more information is needed, call the frame selection tool again.\n\n"
                     f"Question: {raw_query}</tool_response>"
                 ),
             }
@@ -404,6 +410,8 @@ async def single(
         "gt": item.get("reward_model", {}).get("ground_truth"),
         "answer": answer if answer is not None else "",
         "stop_reason": stop_reason,
+        "num_rounds": num_rounds,
+        "total_tokens": total_tokens,
     }
 
 
@@ -499,6 +507,8 @@ async def process_single_item(
                 "answer": "",
                 "stop_reason": "exception",
                 "error": f"{type(e).__name__}: {e}",
+                "num_rounds": 0,
+                "total_tokens": 0,
             }
 
 
@@ -522,7 +532,7 @@ async def main():
         "-v",
         "--max-visual-tokens",
         type=int,
-        default=60000,
+        default=40000,
         help="Max visual token budget per single tool call before frame extraction",
     )
     parser.add_argument(
@@ -649,12 +659,23 @@ async def main():
     eval_correct = 0
     fail_not_answer_found = 0
     missing_result = 0
+    round_sum = 0
+    token_sum = 0
+    stats_count = 0
+    reason_counter = Counter()
+
     for item in items:
         idx = item["index"]
         rec = records_by_index.get(idx)
         if rec is None:
             missing_result += 1
             continue
+        reason = rec.get("stop_reason", "missing_stop_reason")
+        reason_counter[str(reason)] += 1
+
+        round_sum += int(rec.get("num_rounds", 0))
+        token_sum += int(rec.get("total_tokens", 0))
+        stats_count += 1
 
         if rec.get("stop_reason") != "answer_found":
             fail_not_answer_found += 1
@@ -665,28 +686,30 @@ async def main():
         if gt_s == ans_s:
             eval_correct += 1
 
+    print("summary:")
     if eval_total > 0:
         acc = eval_correct / eval_total
-        print(f"accuracy: {eval_correct}/{eval_total} = {acc:.4%}")
-        print(f"failed (stop_reason != answer_found): {fail_not_answer_found}")
-        print(f"missing result in cache: {missing_result}")
+        print(f"  accuracy: {eval_correct}/{eval_total} = {acc:.4%}")
     else:
-        print("accuracy: N/A (dataset is empty)")
+        print("  accuracy: N/A (dataset is empty)")
+    print(f"  failed (stop_reason != answer_found): {fail_not_answer_found}")
+    print(f"  missing result in cache: {missing_result}")
+    if stats_count > 0:
+        print(f"  avg rounds: {round_sum / stats_count:.4f}")
+        print(f"  avg total_tokens: {token_sum / stats_count:.4f}")
+    else:
+        print("  avg rounds: N/A")
+        print("  avg total_tokens: N/A")
 
-    reason_counter = Counter()
-    for rec in final_records:
-        reason = rec.get("stop_reason", "missing_stop_reason")
-        reason_counter[str(reason)] += 1
-    print("stop_reason stats:")
+    print("  stop_reason stats:")
     for reason, cnt in reason_counter.most_common():
-        print(f"  {reason}: {cnt}")
+        print(f"    {reason}: {cnt}")
 
     if error_indices:
         error_indices = sorted(set(error_indices))
         print(f"error indices ({len(error_indices)}): {error_indices}")
     else:
         print("no exception indices")
-
 
 if __name__ == "__main__":
     asyncio.run(main())
