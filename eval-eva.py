@@ -18,7 +18,7 @@ from transformers import AutoTokenizer
 BASE_URL = "http://localhost:8000/v1"
 API_KEY = "no"
 
-MODEL_TOKENIZER_PATH = "/mnt/afs/wangruohui/hf_models/Qwen2.5-VL-7B-Instruct/"
+MODEL_TOKENIZER_PATH = "/mnt/afs/wangruohui/2510-zerorl/global_step_60_hf_to_release"
 FRAME_TOOL_PATH = "select_frame_fallback.py"
 FRAME_SAVE_ROOT = "/mnt/afs2/wangruohui/extracted_frames/"
 
@@ -250,8 +250,10 @@ async def single(
     width, height = (int(v) for v in resolution.split("x"))
     video_p = min(width, height)
 
-    def estimated_tokens(nframes: int, resize: float) -> float:
-        return nframes * height * width * resize * resize / 28 / 28
+    def estimated_tokens(nframes: int, resize: float) -> int:
+        h_units = max(1, round((height * resize) / 28))
+        w_units = max(1, round((width * resize) / 28))
+        return int(nframes) * h_units * w_units
 
     messages = build_message_from_rl(prompt, video_length, resolution)
     messages = copy(messages)
@@ -260,6 +262,7 @@ async def single(
     answer: Optional[str] = None
     num_rounds = 0
     total_tokens = 0
+    estimated_visual_tokens = 0
 
     for _ in range(max_turns):
         try:
@@ -283,6 +286,7 @@ async def single(
                 "error": f"OpenAI BadRequestError after retries: {str(e)}",
                 "num_rounds": num_rounds,
                 "total_tokens": total_tokens,
+                "estimated_visual_tokens": estimated_visual_tokens,
             }
         num_rounds += 1
 
@@ -354,6 +358,7 @@ async def single(
 
             parsed["nframes"] = nframes
             parsed["resize"] = resize
+            estimated_visual_tokens += int(current_estimated_tokens)
 
             img_paths_single, time_stamps_single = await call_frame_select(
                 video,
@@ -412,6 +417,7 @@ async def single(
         "stop_reason": stop_reason,
         "num_rounds": num_rounds,
         "total_tokens": total_tokens,
+        "estimated_visual_tokens": estimated_visual_tokens,
     }
 
 
@@ -512,13 +518,14 @@ async def process_single_item(
                 "error": f"{type(e).__name__}: {e}",
                 "num_rounds": 0,
                 "total_tokens": 0,
+                "estimated_visual_tokens": 0,
             }
 
 
 async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", required=True, choices=sorted(DATASET_CONFIG.keys()))
-    parser.add_argument("--max-concurrent", type=int, default=20)
+    parser.add_argument("--max-concurrent", type=int, default=30)
     parser.add_argument("--max-turns", type=int, default=6, help="Maximum tool-augmented dialogue turns per sample")
     parser.add_argument("--new-cache", action="store_true", help="Recreate cache file")
     parser.add_argument(
@@ -536,7 +543,7 @@ async def main():
         "-v",
         "--max-visual-tokens",
         type=int,
-        default=25000,
+        default=12000,
         help="Max visual token budget per single tool call before frame extraction",
     )
     parser.add_argument(
@@ -551,11 +558,18 @@ async def main():
         default=True,
         help="Enable fallback logic (arg filtering + clamp + robust handling)",
     )
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default=".",
+        help="Directory to save cache and result json files (default: current directory)",
+    )
     args = parser.parse_args()
 
     cfg = DATASET_CONFIG[args.dataset]
-    cache_path = cfg["cache"]
-    result_path = cfg["result"]
+    os.makedirs(args.output_dir, exist_ok=True)
+    cache_path = os.path.join(args.output_dir, cfg["cache"])
+    result_path = os.path.join(args.output_dir, cfg["result"])
 
     if args.new_cache and os.path.exists(cache_path):
         print(f"WARNING: --new-cache will delete: {cache_path}")

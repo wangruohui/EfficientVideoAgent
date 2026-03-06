@@ -46,24 +46,31 @@ uv pip install -r requirements.txt
 
 ### Step 3. Serve the Model with vLLM (Multi-GPU Data Parallel)
 
-You can refer to `deploy` for the full job wrapper.  
+You can refer to `deploy` for the full job wrapper.
 The core serving command is:
 
 ```bash
+export VLLM_BATCH_INVARIANT=1
 vllm serve <MODEL_PATH_OR_HF_ID> \
   --data-parallel-size <NUM_GPUS> \
   --limit-mm-per-prompt '{"image": 9999, "video":0}' \
   --mm_processor_cache_gb 20 \
+  --attention-backend FLASH_ATTN \
   --allowed-local-media-path <LOCAL_MEDIA_ROOT>
 ```
+
+Note: `VLLM_BATCH_INVARIANT=1` paired with `--attention-backend FLASH_ATTN` ensure deterministic results across runs. Otherwise accuracy will differ around 1% across runs.
 
 Example (4 GPUs):
 
 ```bash
-CUDA_VISIBLE_DEVICES=0,1,2,3 vllm serve <MODEL_PATH_OR_HF_ID> \
+export VLLM_BATCH_INVARIANT=1
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+vllm serve <MODEL_PATH_OR_HF_ID> \
   --data-parallel-size 4 \
   --limit-mm-per-prompt '{"image": 9999, "video":0}' \
   --mm_processor_cache_gb 20 \
+  --attention-backend FLASH_ATTN \
   --allowed-local-media-path <LOCAL_MEDIA_ROOT>
 ```
 
