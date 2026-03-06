@@ -440,8 +440,12 @@ def load_cache(cache_path: str) -> Dict[int, Dict[str, Any]]:
     with open(cache_path, "r") as f:
         lines = f.readlines()
 
-    for line in reversed(lines):
-        data = json.loads(line)
+    for i, line in enumerate(reversed(lines)):
+        try:
+            data = json.loads(line)
+        except json.JSONDecodeError:
+            print(f"Warning: skipping invalid JSON line in cache at reversed line {i}: {line.strip()}")
+            continue
         index = data["index"]
         if index in records:
             continue
@@ -652,7 +656,7 @@ async def main():
         )
 
     error_indices: List[int] = []
-    pbar = tqdm(total=len(tasks), desc="Processing", unit="item", ncols=100)
+    pbar = tqdm(total=len(tasks), desc=f"Processing {args.dataset}", unit="item", ncols=100)
     try:
         for coro in asyncio.as_completed(tasks):
             index, record = await coro
