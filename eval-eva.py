@@ -18,9 +18,9 @@ from transformers import AutoTokenizer
 BASE_URL = "http://localhost:8000/v1"
 API_KEY = "no"
 
-MODEL_TOKENIZER_PATH = "/mnt/afs/wangruohui/2510-zerorl/global_step_60_hf_to_release"
+MODEL_TOKENIZER_PATH = "hf_model"
 FRAME_TOOL_PATH = "select_frame_fallback.py"
-FRAME_SAVE_ROOT = "/mnt/afs2/wangruohui/extracted_frames/"
+FRAME_SAVE_ROOT = "extracted_frames"
 
 DATASET_CONFIG: Dict[str, Dict[str, str]] = {
     "videomme": {
