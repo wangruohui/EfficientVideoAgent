@@ -47,7 +47,12 @@ cd EfficientVideoAgent
 
 ### Step 2. Download Model and Install Dependencies
 
-1. Download model weights: `https://huggingface.co/WRHC/EfficientVideoAgent/`
+1. Download model weights from `https://huggingface.co/WRHC/EfficientVideoAgent/` to `hf_model/`:
+
+   ```bash
+   huggingface-cli download WRHC/EfficientVideoAgent --local-dir hf_model
+   ```
+
 2. Install FFmpeg following `https://www.ffmpeg.org/download.html`, ensure `ffprobe` is in `PATH`, and ensure FFmpeg shared libraries are in `LD_LIBRARY_PATH`.
 3. Install dependencies from `requirements.txt` (recommended: `uv`)
 
