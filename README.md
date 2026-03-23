@@ -1,20 +1,19 @@
-# [Paper Title Placeholder]
+# EVA: Efficient Reinforcement Learning for End-to-End Video Agent
 
 [![Paper](https://img.shields.io/badge/Paper-Link-b31b1b.svg)](Paper_Link_Placeholder)
-[![Model](https://img.shields.io/badge/Model-Link-blue.svg)](Model_Link_Placeholder)
+[![Model](https://img.shields.io/badge/Model-Link-blue.svg)](https://huggingface.co/WRHC/EfficientVideoAgent/)
 
 This repository contains the official evaluation code for the model proposed in our paper.
 
 ## 1. Paper and Model
 
-- Paper Title: `Paper Title Placeholder`
+- Paper Title: `EVA: Efficient Reinforcement Learning for End-to-End Video Agent`
 - Paper Link: `Paper_Link_Placeholder`
-- Model Link: `Model_Link_Placeholder`
-- Repository Name: `Repo_Name_Placeholder`
+- Model Link: `https://huggingface.co/WRHC/EfficientVideoAgent/`
 
-## 2. Reference Results (Placeholder)
+## 2. Reference Results
 
-Reference result files are provided in this repository (`results placeholder`).
+Reference result files are provided in this repository, under `results-12k`.
 You can compute accuracy with `accuracy.py`:
 
 ```bash
@@ -42,13 +41,13 @@ Main results:
 ### Step 1. Clone the Repository
 
 ```bash
-git clone Repo_URL_Placeholder
-cd Repo_Name_Placeholder
+git clone https://github.com/wangruohui/EfficientVideoAgent.git
+cd EfficientVideoAgent
 ```
 
 ### Step 2. Download Model and Install Dependencies
 
-1. Download model weights: `Model_Download_Placeholder`
+1. Download model weights: `https://huggingface.co/WRHC/EfficientVideoAgent/`
 2. Install FFmpeg following `https://www.ffmpeg.org/download.html`, ensure `ffprobe` is in `PATH`, and ensure FFmpeg shared libraries are in `LD_LIBRARY_PATH`.
 3. Install dependencies from `requirements.txt` (recommended: `uv`)
 
@@ -58,7 +57,7 @@ cd Repo_Name_Placeholder
    uv pip install -r requirements.txt
    ```
 
-### Step 3. Download Evaluation Datasets and Update `eval-eva.py` Dataset Paths
+### Step 3. Download Evaluation Datasets and Update Dataset Paths
 
 `eval-eva.py` reads dataset meta from `DATASET_CONFIG`. Before running evaluation, make sure each dataset is available locally and paths are correct.
 
@@ -101,7 +100,7 @@ Before running, edit the config section at the top of `eval-eva.py`:
 
 - `BASE_URL`: OpenAI-compatible endpoint for your vLLM server (for example, `http://localhost:8000/v1`).
 - `API_KEY`: API key used by the client (can be a dummy value for local vLLM setups if authentication is disabled).
-- `MODEL_TOKENIZER_PATH`: Tokenizer path, should pointing to downloaded hf model weights, i.e. `Model_Download_Placeholder` in step 2.
+- `MODEL_TOKENIZER_PATH`: Tokenizer path, should pointing to downloaded hf model weights, i.e. `https://huggingface.co/WRHC/EfficientVideoAgent/` in step 2.
 - `FRAME_TOOL_PATH`: path to the frame selection tool script (default is `select_frame_fallback.py`).
 - `FRAME_SAVE_ROOT`: directory where extracted frames are saved during tool calls.
 Also make sure:
@@ -155,7 +154,7 @@ bash batch.sh
 
 ```bibtex
 @article{placeholder2026,
-  title={Paper Title Placeholder},
+  title={EVA: Efficient Reinforcement Learning for End-to-End Video Agent},
   author={Author Placeholder},
   journal={arXiv preprint arXiv:xxxx.xxxxx},
   year={2026}
