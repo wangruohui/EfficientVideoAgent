@@ -1,14 +1,18 @@
 # EVA: Efficient Reinforcement Learning for End-to-End Video Agent
 
 [![Paper](https://img.shields.io/badge/Paper-Link-b31b1b.svg)](Paper_Link_Placeholder)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-black.svg)](https://github.com/wangruohui/EfficientVideoAgent)
 [![Model](https://img.shields.io/badge/Model-Link-blue.svg)](https://huggingface.co/WRHC/EfficientVideoAgent/)
 
-This repository contains the official evaluation code for the model proposed in our paper.
+This repository contains the official evaluation code for the model proposed in our paper. The code is available on GitHub and the model weights are available on Hugging Face.
+
+![EVA Overview](fig1.png)
 
 ## 1. Paper and Model
 
 - Paper Title: `EVA: Efficient Reinforcement Learning for End-to-End Video Agent`
 - Paper Link: `Paper_Link_Placeholder`
+- GitHub Repository: `https://github.com/wangruohui/EfficientVideoAgent`
 - Model Link: `https://huggingface.co/WRHC/EfficientVideoAgent/`
 
 ## 2. Reference Results
@@ -19,9 +23,6 @@ You can compute accuracy with `accuracy.py`:
 ```bash
 python accuracy.py <result_jsonl_path>
 ```
-
-You can control per-tool-call visual token budget via `-v/--max-visual-tokens`.
-When a tool call exceeds this budget, `eval-eva.py` automatically reduces resolution and frame count before extraction.
 
 Main results:
 
@@ -127,14 +128,13 @@ python eval-eva.py --dataset longvideobench
 python eval-eva.py --dataset mlvu
 ```
 
-Set visual token budget per tool call:
+You can control per-tool-call visual token budget via `-v/--max-visual-tokens`.
+When a tool call exceeds this budget, `eval-eva.py` automatically reduces resolution and frame count before extraction.
 
 ```bash
 python eval-eva.py --dataset videomme -v 12000
 python eval-eva.py --dataset videomme -v 32000
 ```
-
-If one tool call exceeds `-v`, the script will automatically downscale `resize` and `nframes` to fit the budget.
 
 Run all supported datasets with `batch.sh`:
 
@@ -145,10 +145,10 @@ bash batch.sh
 ## 4. Output Files and Cache/Resume Mechanism
 
 - Output naming is controlled by `DATASET_CONFIG` in `eval-eva.py`.
+- If the process is interrupted, rerunning the same command resumes from cache and skips finished samples.
 - By default, each dataset writes:
    - `cache_*.jsonl`: online cache (appended sample-by-sample)
    - `result_*.jsonl`: final merged output
-- If the process is interrupted, rerunning the same command resumes from cache and skips finished samples.
 - Useful options:
    - `--retry-error`: retry only failed/error cached samples
    - `--new-cache`: recreate cache from scratch
