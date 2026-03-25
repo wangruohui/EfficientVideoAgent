@@ -1,6 +1,6 @@
 # EVA: Efficient Reinforcement Learning for End-to-End Video Agent
 
-[![Paper](https://img.shields.io/badge/Paper-Link-b31b1b.svg)](Paper_Link_Placeholder)
+[![Paper](https://img.shields.io/badge/Paper-Link-b31b1b.svg)](https://arxiv.org/abs/2603.22918)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-black.svg)](https://github.com/wangruohui/EfficientVideoAgent)
 [![Model](https://img.shields.io/badge/Model-Link-blue.svg)](https://huggingface.co/WRHC/EfficientVideoAgent/)
 
@@ -11,7 +11,7 @@ This repository contains the official evaluation code for the model proposed in 
 ## 1. Paper and Model
 
 - Paper Title: `EVA: Efficient Reinforcement Learning for End-to-End Video Agent`
-- Paper Link: `Paper_Link_Placeholder`
+- Paper Link: `https://arxiv.org/abs/2603.22918`
 - GitHub Repository: `https://github.com/wangruohui/EfficientVideoAgent`
 - Model Link: `https://huggingface.co/WRHC/EfficientVideoAgent/`
 
@@ -158,10 +158,13 @@ bash batch.sh
 ## Citation
 
 ```bibtex
-@article{placeholder2026,
+@misc{zhang2026evaefficientreinforcementlearning,
   title={EVA: Efficient Reinforcement Learning for End-to-End Video Agent},
-  author={Author Placeholder},
-  journal={arXiv preprint arXiv:xxxx.xxxxx},
-  year={2026}
+  author={Yaolun Zhang and Ruohui Wang and Jiahao Wang and Yepeng Tang and Xuanyu Zheng and Haonan Duan and Hao Lu and Hanming Deng and Lewei Lu},
+  year={2026},
+  eprint={2603.22918},
+  archivePrefix={arXiv},
+  primaryClass={cs.CV},
+  url={https://arxiv.org/abs/2603.22918},
 }
 ```
