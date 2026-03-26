@@ -1,10 +1,13 @@
 # EVA: Efficient Reinforcement Learning for End-to-End Video Agent
 
-[![Paper](https://img.shields.io/badge/Paper-Link-b31b1b.svg)](https://arxiv.org/abs/2603.22918)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-black.svg)](https://github.com/wangruohui/EfficientVideoAgent)
-[![Model](https://img.shields.io/badge/Model-Link-blue.svg)](https://huggingface.co/WRHC/EfficientVideoAgent/)
+[![Paper](https://img.shields.io/badge/Paper-2603.22918-b31b1b.svg)](https://arxiv.org/abs/2603.22918)
+[![Paper](https://img.shields.io/badge/Paper-2603.22918-yellow.svg)](https://huggingface.co/papers/2603.22918)
+[![GitHub](https://img.shields.io/badge/GitHub-EfficientVideoAgent-black.svg)](https://github.com/wangruohui/EfficientVideoAgent)
+[![Model](https://img.shields.io/badge/Model-EfficientVideoAgent-blue.svg)](https://huggingface.co/WRHC/EfficientVideoAgent/)
 
-This repository contains the official evaluation code for the model proposed in our paper. The code is available on GitHub and the model weights are available on Hugging Face.
+This repository contains the official evaluation code for the model proposed in our paper [EVA: Efficient Reinforcement Learning for End-to-End Video Agent](https://arxiv.org/abs/2603.22918). Model weights are hosted on [Huggingface](https://huggingface.co/WRHC/EfficientVideoAgent/).
+
+EVA (Efficient Video Agent) is an end-to-end framework that enables "planning-before-perception" through iterative summary-plan-action-reflection reasoning. Unlike passive recognizers, EVA autonomously decides what to watch, when to watch, and how to watch, achieving query-driven and efficient video understanding.
 
 ![EVA Overview](fig1.png)
 
