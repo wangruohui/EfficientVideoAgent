@@ -2,6 +2,7 @@
 
 [![Paper](https://img.shields.io/badge/Paper-2603.22918-b31b1b.svg)](https://arxiv.org/abs/2603.22918)
 [![Paper](https://img.shields.io/badge/Paper-2603.22918-yellow.svg)](https://huggingface.co/papers/2603.22918)
+[![Project Page](https://img.shields.io/badge/Project-Page-2ea44f.svg)](https://mercury7353.github.io/EVA-Page/)
 [![GitHub](https://img.shields.io/badge/GitHub-EfficientVideoAgent-black.svg)](https://github.com/wangruohui/EfficientVideoAgent)
 [![Model](https://img.shields.io/badge/Model-EfficientVideoAgent-blue.svg)](https://huggingface.co/WRHC/EfficientVideoAgent/)
 
@@ -15,6 +16,7 @@ EVA (Efficient Video Agent) is an end-to-end framework that enables "planning-be
 
 - Paper Title: `EVA: Efficient Reinforcement Learning for End-to-End Video Agent`
 - Paper Link: `https://arxiv.org/abs/2603.22918`
+- Project Page: `https://mercury7353.github.io/EVA-Page/`
 - GitHub Repository: `https://github.com/wangruohui/EfficientVideoAgent`
 - Model Link: `https://huggingface.co/WRHC/EfficientVideoAgent/`
 
